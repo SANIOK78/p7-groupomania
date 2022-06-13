@@ -25,7 +25,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 // app.use(express.json());
 
 // route utilisateur
-app.use('/api/authentif', userRoute);
+app.use('/api/user', userRoute);
 
 app.use('/', (req, res) => {
     res.json({message: 'Salut Client, ici le Serveur! '});
