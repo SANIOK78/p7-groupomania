@@ -11,6 +11,7 @@ const userRoute = require("./routes/userRoute");
 const postRoutes = require('./routes/postRoutes');
 //recuperation function 'checkUser'
 const {checkUser, requireAuth} = require('./middleware/auth.middleware');
+const cors = require('cors');
 // Création de l'application express
 const app = express();
 
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     next();
 });
+// app.use(cors());
 
 // Analyse du corp de la requete
 app.use(bodyParser.json());

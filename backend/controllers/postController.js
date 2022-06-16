@@ -2,9 +2,12 @@
 const PostModel = require('../models/postModel');
 // récupération du userModel
 const UserModel = require('../models/userModel');
+const fs = require('fs');
+const {promisify } = require('util');
+const { uploadErrors } = require('../utils/errorsUtils');
+const pipeline = promisify(require('stream').pipeline);
 // récup 'ObjectId' 
 const ObjectID = require('mongoose').Types.ObjectId;
-
 
 // fonction permettant l'affichage des posts
 module.exports.readPost = (req, res) => {
@@ -17,10 +20,43 @@ module.exports.readPost = (req, res) => {
 
 // fonction permettant la creation des posts
 module.exports.createPost = async (req, res) => {
+    // traitement de 'req.file'
+    let fileName;
+    if(req.file !== null) {
+        try {
+            // verification format image
+            if (req.file.detectedMimeType !== 'image/jpg' &&
+                req.file.detectedMimeType !== 'image/jpeg' &&
+                req.file.detectedMimeType !== 'image/png') {
+    
+                throw Error("invalid file");
+            } 
+            // verif taille
+            if (req.file.size > 500000) throw Error("max size");
+    
+        } catch(err) {
+            const errors = uploadErrors(err)
+            return res.status(201).json({errors});
+        }
+    
+        //si pas d'erreur le fileName prend l'idée d'user qui a posté
+        //au moment precis + extention
+        fileName = req.body.posterId + Date.now() + '.jpg';
+
+        // création du fichier
+        await pipeline(req.file.stream, 
+            fs.createWriteStream(
+             // on indique le chaimin ou stocker le fichier
+                `${__dirname}/../client/public/uploads/posts/${fileName}`
+            )
+        );
+    }
+
     // paramétrage du nouveau post
     const newPost = new PostModel({
         posterId: req.body.posterId,
         message: req.body.message,
+        picture: req.file !== null ? "./uploads/posts/" + fileName : "",
         video: req.body.video,
         likers: [],
         comments: []
